@@ -9,11 +9,9 @@ import numpy as np
 from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
 
-from livekit import rtc
+from livekit import api, rtc
 
 ws_url = "wss://hello-ai-dashboard-e4xmzj16.livekit.cloud"
-token = ""
-
 tasks = set()
 
 # You can download a face landmark model file from https://developers.google.com/mediapipe/solutions/vision/face_landmarker#models
@@ -48,7 +46,19 @@ async def main(room: rtc.Room) -> None:
             tasks.add(task)
             task.add_done_callback(tasks.remove)
 
-    await room.connect(ws_url, token)
+    token = (
+        api.AccessToken()
+        .with_identity("eric-jr")
+        .with_name("Eric Jr.")
+        .with_grants(
+            api.VideoGrants(
+                room_join=True,
+                room="my-room",
+            )
+        )
+    )
+
+    await room.connect(ws_url, token.to_jwt())
     print("connected to room: " + room.name)
 
 
